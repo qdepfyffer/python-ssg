@@ -266,7 +266,7 @@ def extract_title(markdown):
         header = markdown.split("\n")[0][2:]
         return header
     
-def generate_page(from_path, template_path, dest_path):
+def generate_page(basepath, from_path, template_path, dest_path):
     print(f"Generating page from {from_path} to {dest_path} using {template_path}...\n")
     with open(from_path, "r") as f:
         markdown = f.read()
@@ -275,13 +275,14 @@ def generate_page(from_path, template_path, dest_path):
     html = markdown_to_html(markdown).to_html()
     title = extract_title(markdown)
     template = template.replace(r"{{ Title }}", title).replace(r"{{ Content }}", html)
+    template = template.replace('href="/', f'href="{basepath}').replace('src="/', f'src="{basepath}')
     dest_dir = os.path.dirname(dest_path)
     if dest_dir != "":
         os.makedirs(dest_dir, exist_ok=True)
     with open(dest_path, "w") as f:
         f.write(template)
 
-def r_generate_page(from_dir, template_path, dest_dir):
+def r_generate_page(basepath, from_dir, template_path, dest_dir):
     abs_src = os.path.abspath(from_dir)
     abs_dst = os.path.abspath(dest_dir)
     if not os.path.exists(abs_dst):
@@ -290,6 +291,6 @@ def r_generate_page(from_dir, template_path, dest_dir):
         new_src = os.path.abspath(os.path.join(abs_src, filename))
         new_dst = os.path.abspath(os.path.join(abs_dst, filename))
         if os.path.isfile(new_src):
-            generate_page(new_src, template_path, new_dst.replace("md", "html"))
+            generate_page(basepath, new_src, template_path, new_dst.replace("md", "html"))
         else:
-            r_generate_page(new_src, template_path, new_dst)
+            r_generate_page(basepath, new_src, template_path, new_dst)
